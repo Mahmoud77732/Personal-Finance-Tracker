@@ -1,0 +1,25 @@
+<form (ngSubmit)="onSubmit()">
+    <div>
+      <label>Amount:</label>
+      <input type="number" [(ngModel)]="transaction.amount" name="amount" required>
+    </div>
+    <div>
+      <label>Date:</label>
+      <input type="date" [(ngModel)]="transaction.date" name="date" required>
+    </div>
+    <div>
+      <label>Type:</label>
+      <select [(ngModel)]="transaction.type" name="type" required>
+        <option value="expense">Expense</option>
+        <option value="income">Income</option>
+      </select>
+    </div>
+    <div>
+      <label>Category:</label>
+      <input type="number" [(ngModel)]="transaction.category.id" name="categoryId" required>
+    </div>
+    <button type="submit">Add Transaction</button>
+  </form>
+  
+  <div *ngIf="successMessage" class="success">{{ successMessage }}</div>
+  <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>

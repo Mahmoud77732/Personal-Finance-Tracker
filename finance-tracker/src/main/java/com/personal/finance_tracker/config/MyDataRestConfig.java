@@ -49,7 +49,7 @@ public class MyDataRestConfig implements RepositoryRestConfigurer {
      */
     @Override
     public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config, CorsRegistry cors) {
-        HttpMethod[] theUnSupportedActions = {HttpMethod.PUT, HttpMethod.POST, HttpMethod.DELETE, HttpMethod.PATCH};
+        HttpMethod[] theUnSupportedActions = {HttpMethod.PUT, HttpMethod.DELETE};
         
         // disable HTTP methods for Entity Classes: PUT, POST and DELETE
         disableHttpMethods(User.class, config, theUnSupportedActions);

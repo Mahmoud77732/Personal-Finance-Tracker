@@ -4,23 +4,22 @@ import { TransactionService } from '../../services/transaction.service';
 @Component({
   selector: 'app-dashboard',
   template: `
-    <h2>Categories</h2>
-    <ul>
-      <li *ngFor="let category of categories">{{ category.name }}</li>
-    </ul>
+    <h2>Dashboard</h2>
+    <app-transaction-form></app-transaction-form>
+    <app-transaction-list></app-transaction-list>
   `,
   styles: []
 })
 export class DashboardComponent implements OnInit {
-  categories: any[] = [];
+  // categories: any[] = [];
 
   constructor(private transactionService: TransactionService) {}
 
   ngOnInit(): void {
-    this.transactionService.getCategories().subscribe({
-      next: (data: any) => this.categories = data._embedded.categories,
-      error: error => console.error(error)
-    });
+    // this.transactionService.getCategories().subscribe({
+    //   next: (data: any) => this.categories = data._embedded.categories,
+    //   error: error => console.error(error)
+    // });
   }
   
 }

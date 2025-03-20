@@ -5,7 +5,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { OKTA_AUTH, OKTA_CONFIG, OktaAuthModule } from '@okta/okta-angular';
 import myAppConfig from './config/my-app-config';
 import {OktaAuth} from  '@okta/okta-auth-js';
@@ -13,6 +13,8 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { AuthInterceptorService } from './services/auth-interceptor.service';
 import { LoginComponent } from './components/login/login.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { TransactionListComponent } from './components/transaction-list/transaction-list.component';
+import { TransactionFormComponent } from './components/transaction-form/transaction-form.component';
 
 const oktaConfig = myAppConfig.oidc;
 const oktaAuth = new OktaAuth(oktaConfig);
@@ -21,7 +23,7 @@ const oktaAuth = new OktaAuth(oktaConfig);
   declarations: [
     AppComponent, 
     LoginComponent, 
-    DashboardComponent
+    DashboardComponent, TransactionListComponent, TransactionFormComponent
   ],
   imports: [
     BrowserModule,
@@ -29,7 +31,8 @@ const oktaAuth = new OktaAuth(oktaConfig);
     HttpClientModule,
     NgbModule,
     ReactiveFormsModule,
-    OktaAuthModule
+    OktaAuthModule,
+    FormsModule
   ],
   providers: [
     { 
