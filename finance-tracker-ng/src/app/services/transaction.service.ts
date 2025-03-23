@@ -27,56 +27,76 @@ export class TransactionService {
     return this.transactionsUpdated$.asObservable();
   }
 
-  getTransactions(page: number = 0, size: number = 5, sort: string = 'id,asc', typeFilter: string = '', amountFilter: number | null = null): Observable<Page<Transaction>> {
+  getTransactions(
+    page: number = 0,
+    size: number = 5,
+    sort: string = 'id,asc',
+    typeFilter: string = '',
+    amountFilter: number | null = null,
+    startDate: string | null = null,
+    endDate: string | null = null
+  ): Observable<Page<Transaction>> {
     let url = `${this.baseUrl}/transactions?page=${page}&size=${size}&sort=${sort}`;
-    if (typeFilter || amountFilter !== null) {
+    if (typeFilter || amountFilter !== null || startDate || endDate) {
       const typeParam = typeFilter ? `type=${encodeURIComponent(typeFilter)}` : 'type=';
-      const amountParam = amountFilter !== null ? `amount=${amountFilter}` : 'amount=';
-      url = `${this.baseUrl}/transactions/search/searchByTypeOrAmount?${typeParam}&${amountParam}&page=${page}&size=${size}&sort=${sort}`;
+      const amountParam = amountFilter !== null ? `amount=${amountFilter}` : '';
+      const startDateParam = startDate ? `startDate=${encodeURIComponent(startDate)}` : '';
+      const endDateParam = endDate ? `endDate=${encodeURIComponent(endDate)}` : '';
+      url = `${this.baseUrl}/transactions/search/searchByFilters?${typeParam}${amountParam ? '&' + amountParam : ''}${startDateParam ? '&' + startDateParam : ''}${endDateParam ? '&' + endDateParam : ''}&page=${page}&size=${size}&sort=${sort}`;
     }
     return this.http.get<HalTransactionsResponse>(url).pipe(
       switchMap(response => {
         const transactions = response._embedded?.transactions || [];
         console.log('Raw transactions response:', transactions);
+        const pageInfo = {
+          totalElements: response.page?.totalElements ?? 0,
+          totalPages: response.page?.totalPages ?? 0,
+          number: response.page?.number ?? 0,
+          size: response.page?.size ?? size
+        };
         if (transactions.length === 0) {
           return of({
-            content: [] as Transaction[],
-            totalElements: response.page?.totalElements || 0,
-            totalPages: response.page?.totalPages || 0,
-            number: response.page?.number || 0,
-            size: response.page?.size || size
+            content: [],
+            ...pageInfo
           } as Page<Transaction>);
         }
         return forkJoin(
-          transactions.map((t: any) =>
-            this.resolveTransactionDetails(t)
-          )
+          transactions.map((t: any) => this.resolveTransactionDetails(t))
         ).pipe(
-          map((content: any) => ({
+          map((content: Transaction[]) => ({
             content,
-            totalElements: response.page.totalElements,
-            totalPages: response.page.totalPages,
-            number: response.page.number,
-            size: response.page.size
+            ...pageInfo
           } as Page<Transaction>))
         );
       }),
       catchError(err => {
         console.error('Error fetching transactions:', err);
-        throw err;
+        return of({
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          number: 0,
+          size: size
+        } as Page<Transaction>);
       })
     );
   }
 
-  getAllTransactions(typeFilter: string = '', amountFilter: number | null = null): Observable<Transaction[]> {
-    // Use a large size to fetch all (adjust based on your data size or backend limit)
-    const largeSize = 1000; // Assuming you won't exceed 1000 transactions; adjust if needed
+  getAllTransactions(
+    typeFilter: string = '',
+    amountFilter: number | null = null,
+    startDate: string | null = null,
+    endDate: string | null = null
+  ): Observable<Transaction[]> {
+    const largeSize = 1000;
     const sort = 'id,asc';
     let url = `${this.baseUrl}/transactions?page=0&size=${largeSize}&sort=${sort}`;
-    if (typeFilter || amountFilter !== null) {
+    if (typeFilter || amountFilter !== null || startDate || endDate) {
       const typeParam = typeFilter ? `type=${encodeURIComponent(typeFilter)}` : 'type=';
-      const amountParam = amountFilter !== null ? `amount=${amountFilter}` : 'amount=';
-      url = `${this.baseUrl}/transactions/search/searchByTypeOrAmount?${typeParam}&${amountParam}&page=0&size=${largeSize}&sort=${sort}`;
+      const amountParam = amountFilter !== null ? `amount=${amountFilter}` : '';
+      const startDateParam = startDate ? `startDate=${encodeURIComponent(startDate)}` : '';
+      const endDateParam = endDate ? `endDate=${encodeURIComponent(endDate)}` : '';
+      url = `${this.baseUrl}/transactions/search/searchByFilters?${typeParam}${amountParam ? '&' + amountParam : ''}${startDateParam ? '&' + startDateParam : ''}${endDateParam ? '&' + endDateParam : ''}&page=0&size=${largeSize}&sort=${sort}`;
     }
     return this.http.get<HalTransactionsResponse>(url).pipe(
       switchMap(response => {
@@ -112,6 +132,40 @@ export class TransactionService {
           transaction.user = user;
         }
         return transaction;
+      })
+    );
+  }
+
+  getTotals(
+    typeFilter: string = '',
+    amountFilter: number | null = null,
+    startDate: string | null = null,
+    endDate: string | null = null
+  ): Observable<{ totalIncome: number; totalExpense: number; netTotal: number }> {
+    let url = `${this.baseUrl}/transactions/search/totalsByFilters`;
+    const params: string[] = [];
+    if (typeFilter) params.push(`type=${encodeURIComponent(typeFilter)}`);
+    if (amountFilter !== null) params.push(`amount=${amountFilter}`);
+    if (startDate) params.push(`startDate=${encodeURIComponent(startDate)}`);
+    if (endDate) params.push(`endDate=${encodeURIComponent(endDate)}`);
+    if (params.length > 0) url += `?${params.join('&')}`;
+  
+    return this.http.get<number[][]>(url).pipe(
+      tap(response => console.log('Direct HTTP response:', response)),
+      map((response: number[][]) => {
+        console.log('Raw totals response:', response);
+        const totalsArray = response[0] || [0, 0]; // Extract the inner array, default to [0, 0] if empty
+        const totalIncome = totalsArray[0] || 0; // First element is income
+        const totalExpense = totalsArray[1] || 0; // Second element is expense
+        return {
+          totalIncome: totalIncome,
+          totalExpense: totalExpense,
+          netTotal: totalIncome + totalExpense
+        };
+      }),
+      catchError(err => {
+        console.error('Error fetching totals:', err);
+        return of({ totalIncome: 0, totalExpense: 0, netTotal: 0 });
       })
     );
   }

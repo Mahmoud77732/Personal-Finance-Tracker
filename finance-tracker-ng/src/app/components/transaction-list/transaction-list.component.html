@@ -1,8 +1,11 @@
 
+
+
 <div class="table-controls">
   <div>
     <button mat-raised-button color="primary" (click)="openAddDialog()">Add Transaction</button>
-    <button mat-raised-button color="accent" (click)="exportToCsv()" [disabled]="exportLoading || transactions.length === 0">Export All to CSV</button>  </div>
+    <button mat-raised-button color="accent" (click)="exportToCsv()" [disabled]="exportLoading || transactions.length === 0">Export All to CSV</button>
+  </div>
   <div class="filter-group">
     <mat-form-field appearance="fill" class="filter-field">
       <mat-label>Type</mat-label>
@@ -11,6 +14,15 @@
     <mat-form-field appearance="fill" class="filter-field">
       <mat-label>Amount</mat-label>
       <input matInput type="number" (keyup)="applyAmountFilter($event)" [value]="amountFilter || ''" placeholder="e.g., 50.00">
+    </mat-form-field>
+    <mat-form-field appearance="fill" class="filter-field">
+      <mat-label>Date Range</mat-label>
+      <mat-date-range-input [rangePicker]="picker" (dateChange)="applyDateRange()">
+        <input matStartDate placeholder="Start date" [(ngModel)]="startDate">
+        <input matEndDate placeholder="End date" [(ngModel)]="endDate" (dateInput)="applyDateRange()">
+      </mat-date-range-input>
+      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-date-range-picker #picker></mat-date-range-picker>
     </mat-form-field>
   </div>
 </div>
@@ -57,3 +69,40 @@
 </div>
 
 <mat-paginator [length]="totalElements" [pageSize]="pageSize" [pageIndex]="pageIndex" [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event)" showFirstLastButtons></mat-paginator>
+
+<mat-card class="summary-card">
+  <mat-card-title>Page Totals</mat-card-title>
+  <mat-card-content>
+    <div class="summary-row">
+      <span>Total Income:</span>
+      <span class="amount income">{{ totalIncome | number:'1.2-2' }}</span>
+    </div>
+    <div class="summary-row">
+      <span>Total Expense:</span>
+      <span class="amount expense">{{ totalExpense | number:'1.2-2' }}</span>
+    </div>
+    <div class="summary-row">
+      <span>Net Balance:</span>
+      <span class="amount" [ngClass]="{'income': netBalance >= 0, 'expense': netBalance < 0}">{{ netBalance | number:'1.2-2' }}</span>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="summary-card">
+  <mat-card-title>All Transactions Totals</mat-card-title>
+  <mat-card-content>
+    <div class="summary-row">
+      <span>Total Income:</span>
+      <span class="amount income">{{ allTotalIncome | number:'1.2-2' }}</span>
+    </div>
+    <div class="summary-row">
+      <span>Total Expense:</span>
+      <span class="amount expense">{{ allTotalExpense | number:'1.2-2' }}</span>
+    </div>
+    <div class="summary-row">
+      <span>Net Total:</span>
+      <span class="amount" [ngClass]="{'income': allNetTotal >= 0, 'expense': allNetTotal < 0}">{{ allNetTotal | number:'1.2-2' }}</span>
+    </div>
+  </mat-card-content>
+</mat-card>
+

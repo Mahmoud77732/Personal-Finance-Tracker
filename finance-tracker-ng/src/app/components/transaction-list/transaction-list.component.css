@@ -6,43 +6,6 @@ table {
 }
 
 .mat-elevation-z8 {
-  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, .2), 0 8px 10px 1px rgba(0, 0, 0, .14), 0 3px 14px 2px rgba(0, 0, 0, .12);
-}
-
-button {
-  margin-right: 8px;
-}
-
-mat-paginator {
-  margin-top: 16px;
-}
-
-.table-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 20px 0;
-}
-
-.table-controls div {
-  display: flex;
-  gap: 10px; /* Space between buttons */
-}
-
-.filter-group {
-  display: flex;
-  gap: 15px;
-}
-
-.filter-field {
-  width: 200px;
-}
-
-.table-container {
-  position: relative;
-}
-
-.mat-elevation-z8 {
   width: 100%;
   box-shadow: 0 5px 5px -3px rgba(0, 0, 0, .2), 0 8px 10px 1px rgba(0, 0, 0, .14), 0 3px 14px 2px rgba(0, 0, 0, .12);
 }
@@ -64,4 +27,56 @@ button {
 
 mat-paginator {
   margin-top: 16px;
+}
+
+.summary-card {
+  margin: 20px 0;
+  padding: 16px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0;
+}
+
+.amount {
+  font-weight: bold;
+}
+
+.income {
+  color: #4caf50; /* Green for positive */
+}
+
+.expense {
+  color: #f44336; /* Red for negative */
+}
+
+.table-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.table-controls div {
+  display: flex;
+  gap: 10px;
+}
+
+.filter-group {
+  display: flex;
+  gap: 15px;
+}
+
+.filter-field {
+  width: 200px;
+}
+
+.table-container {
+  position: relative;
+}
+
+.filter-field mat-date-range-input {
+  width: 100%;
 }

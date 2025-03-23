@@ -9,11 +9,13 @@ import { MatSort, Sort } from '@angular/material/sort';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Page } from '../../models/page';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-transaction-list',
   templateUrl: './transaction-list.component.html',
-  styleUrls: ['./transaction-list.component.css']
+  styleUrls: ['./transaction-list.component.css'],
+  providers: [DatePipe] // Add DatePipe for formatting
 })
 export class TransactionListComponent implements OnInit, OnDestroy{
   transactions: Transaction[] = [];
@@ -26,8 +28,17 @@ export class TransactionListComponent implements OnInit, OnDestroy{
   sortDirection = 'asc';
   typeFilter = '';
   amountFilter: number | null = null;
+  startDate: Date | null = null;
+  endDate: Date | null = null;
   loading = false;
   exportLoading = false;
+  totalIncome = 0;
+  totalExpense = 0;
+  netBalance = 0;
+  allTotalIncome: number = 0;
+  allTotalExpense: number = 0;
+  allNetTotal: number = 0;
+  length = 0;
   private subscription: Subscription = new Subscription(); // rxjx
   
   @ViewChild(MatSort) sort!: MatSort;
@@ -37,7 +48,8 @@ export class TransactionListComponent implements OnInit, OnDestroy{
     private transactionService: TransactionService, 
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private datePipe: DatePipe
   ) {
 
   }
@@ -46,7 +58,10 @@ export class TransactionListComponent implements OnInit, OnDestroy{
     this.loadTransactions();
     this.subscription.add(
       this.transactionService.transactionsUpdated.subscribe(
-        () => {this.loadTransactions();}) // Refresh list on update
+        () => {
+          this.loadTransactions();
+          this.loadAllTotals();
+        }) // Refresh list on update
     );
   }
 
@@ -62,32 +77,83 @@ export class TransactionListComponent implements OnInit, OnDestroy{
   loadTransactions(): void {
     this.loading = true;
     const sort = `${this.sortField},${this.sortDirection}`;
-    console.log(`Loading page ${this.pageIndex} with size ${this.pageSize}, sort ${sort}, typeFilter: ${this.typeFilter}, amountFilter: ${this.amountFilter}`);
-    this.transactionService.getTransactions(this.pageIndex, this.pageSize, sort, this.typeFilter, this.amountFilter).subscribe({
+    const startDateStr = this.startDate ? this.datePipe.transform(this.startDate, 'yyyy-MM-dd') : null;
+    const endDateStr = this.endDate ? this.datePipe.transform(this.endDate, 'yyyy-MM-dd') : null;
+    console.log(`Loading page ${this.pageIndex} with size ${this.pageSize}, sort ${sort}, typeFilter: ${this.typeFilter}, amountFilter: ${this.amountFilter}, startDate: ${startDateStr}, endDate: ${endDateStr}`);
+    this.transactionService.getTransactions(this.pageIndex, this.pageSize, sort, this.typeFilter, this.amountFilter, startDateStr, endDateStr).subscribe({
       next: (page: Page<Transaction>) => {
         console.log('Page data:', page.content);
+        console.log('Page metadata:', { totalElements: page.totalElements, totalPages: page.totalPages });
         this.transactions = page.content;
         this.totalElements = page.totalElements;
-        this.pageSize = page.size;
-        this.pageIndex = page.number;
-        this.paginator.length = page.totalElements; // Explicitly set length
-        this.paginator.pageSize = page.size;
-        this.paginator.pageIndex = page.number;
+        this.updatePaginator();
+        this.calculatePageTotals();
         this.cdr.detectChanges();
-        console.log(`Paginator updated - length: ${this.paginator.length}, pageSize: ${this.paginator.pageSize}, pageIndex: ${this.paginator.pageIndex}`);
         this.loading = false;
       },
       error: (err) => {
         console.error('Error fetching transactions:', err);
-        this.snackBar.open('Failed to load transactions', 'Close', { duration: 3000, panelClass: ['error-snackbar'] });
         this.loading = false;
+      }
+    });
+    this.loadAllTotals();
+  }
+
+  loadAllTotals(): void {
+    const startDateStr = this.startDate ? this.datePipe.transform(this.startDate, 'yyyy-MM-dd')! : null;
+    const endDateStr = this.endDate ? this.datePipe.transform(this.endDate, 'yyyy-MM-dd')! : null;
+    this.transactionService.getTotals(this.typeFilter, this.amountFilter, startDateStr, endDateStr).subscribe({
+      next: (totals: { totalIncome: number; totalExpense: number; netTotal: number }) => {
+        console.log('Raw totals from service:', totals);
+        this.allTotalIncome = totals.totalIncome;
+        this.allTotalExpense = totals.totalExpense;
+        this.allNetTotal = totals.netTotal;
+        console.log('Assigned totals - Income:', this.allTotalIncome, 'Expense:', this.allTotalExpense, 'Net:', this.allNetTotal);
+        console.log('Types - Income:', typeof this.allTotalIncome, 'Expense:', typeof this.allTotalExpense, 'Net:', typeof this.allNetTotal);
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error in loadAllTotals:', error);
+        this.allTotalIncome = 0;
+        this.allTotalExpense = 0;
+        this.allNetTotal = 0;
+        this.cdr.detectChanges();
       }
     });
   }
 
+  calculatePageTotals(): void {
+    this.totalIncome = this.transactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
+    this.totalExpense = this.transactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + -t.amount, 0);  // Match backend: expenses are negated
+    this.netBalance = this.totalIncome + this.totalExpense;  // Use netBalance to match HTML
+    console.log(`Page Totals - Income: ${this.totalIncome}, Expense: ${this.totalExpense}, Net: ${this.netBalance}`);
+  }
+
+  updatePaginator(): void {
+    if (this.paginator) {
+      this.paginator.length = this.totalElements; // Set paginator length
+      this.paginator.pageIndex = this.pageIndex;
+      this.paginator.pageSize = this.pageSize;
+      console.log(`Paginator updated - length: ${this.paginator.length}, pageSize: ${this.paginator.pageSize}, pageIndex: ${this.paginator.pageIndex}`);
+    }
+  }
+
+  handlePageEvent(event: any): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadTransactions();
+  }
+
+
   exportToCsv(): void {
     this.exportLoading = true;
-    this.transactionService.getAllTransactions(this.typeFilter, this.amountFilter).subscribe({
+    const startDateStr = this.startDate ? this.datePipe.transform(this.startDate, 'yyyy-MM-dd') : null;
+    const endDateStr = this.endDate ? this.datePipe.transform(this.endDate, 'yyyy-MM-dd') : null;
+    this.transactionService.getAllTransactions(this.typeFilter, this.amountFilter, startDateStr, endDateStr).subscribe({
       next: (allTransactions: Transaction[]) => {
         const headers = ['ID', 'Amount', 'Date', 'Type', 'Category', 'User'];
         const rows = allTransactions.map(t => [
@@ -125,6 +191,19 @@ export class TransactionListComponent implements OnInit, OnDestroy{
     });
   }
 
+  onSortChange(event: any): void {
+    this.sortField = event.active;
+    this.sortDirection = event.direction;
+    this.pageIndex = 0;
+    this.loadTransactions();
+  }
+
+  onPageChange(event: any): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadTransactions();
+  }
+
   applyTypeFilter(event: Event): void {
     const value = (event.target as HTMLInputElement)?.value || '';
     this.typeFilter = value.trim().toLowerCase();
@@ -140,17 +219,8 @@ export class TransactionListComponent implements OnInit, OnDestroy{
     this.loadTransactions();
   }
 
-  onSortChange(sort: Sort): void {
-    this.sortField = sort.active;
-    this.sortDirection = sort.direction || 'asc';
-    this.pageIndex = 0; // Reset to first page
-    this.loadTransactions();
-  }
-
-  onPageChange(event: PageEvent): void {
-    console.log('Page event:', event);
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
+  applyDateRange(): void {
+    this.pageIndex = 0;
     this.loadTransactions();
   }
 
