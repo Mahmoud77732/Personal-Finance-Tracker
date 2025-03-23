@@ -16,7 +16,7 @@ public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private double amount;
+    private Double amount;
     private LocalDate date;
     private String type; // "income" or "expense"
     @ManyToOne

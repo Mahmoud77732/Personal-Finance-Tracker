@@ -49,13 +49,6 @@ public class MyDataRestConfig implements RepositoryRestConfigurer {
      */
     @Override
     public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config, CorsRegistry cors) {
-        HttpMethod[] theUnSupportedActions = {HttpMethod.PUT, HttpMethod.DELETE};
-        
-        // disable HTTP methods for Entity Classes: PUT, POST and DELETE
-        disableHttpMethods(User.class, config, theUnSupportedActions);
-        disableHttpMethods(Transaction.class, config, theUnSupportedActions);
-        disableHttpMethods(Budget.class, config, theUnSupportedActions);
-        disableHttpMethods(Category.class, config, theUnSupportedActions);
 
         // call an internal helper method
         exposeIds(config);
@@ -63,7 +56,11 @@ public class MyDataRestConfig implements RepositoryRestConfigurer {
         // Now: we can remove @CrossOrigin from JpaRepositries
         //cors.addMapping("/api/**").allowedOrigins("http://localhost:4200");
         //cors.addMapping("/api/**").allowedOrigins(allowedOrigins);
-        cors.addMapping(config.getBasePath()+ "/**").allowedOrigins(allowedOrigins);
+        cors.addMapping(config.getBasePath()+ "/**")
+                .allowedOrigins(allowedOrigins)
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS") // Include DELETE and OPTIONS
+                .allowedHeaders("*") // Allow all headers
+                .allowCredentials(true);
     }
 
     private void disableHttpMethods(Class theEntityClass, RepositoryRestConfiguration config, HttpMethod[] theUnSupportedActions) {

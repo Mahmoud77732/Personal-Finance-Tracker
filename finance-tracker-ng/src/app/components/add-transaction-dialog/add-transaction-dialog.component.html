@@ -1,0 +1,35 @@
+
+<h2 mat-dialog-title>Add Transaction</h2>
+<mat-dialog-content>
+  <mat-form-field appearance="fill">
+    <mat-label>Amount</mat-label>
+    <input matInput type="number" [(ngModel)]="transaction.amount" required>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Date</mat-label>
+    <input matInput type="date" [(ngModel)]="transaction.date" required>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Type</mat-label>
+    <mat-select [(ngModel)]="transaction.type" required>
+      <mat-option value="income">Income</mat-option>
+      <mat-option value="expense">Expense</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Category</mat-label>
+    <mat-select [(ngModel)]="transaction.category" required [compareWith]="compareCategories">
+      <mat-option *ngFor="let category of categories" [value]="category">
+        {{ category.name }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-button color="primary" (click)="onSave()" [disabled]="!transaction.amount || !transaction.date || !transaction.type || !transaction.category">Save</button>
+</mat-dialog-actions>

@@ -1,0 +1,67 @@
+
+
+
+table {
+  width: 100%;
+}
+
+.mat-elevation-z8 {
+  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, .2), 0 8px 10px 1px rgba(0, 0, 0, .14), 0 3px 14px 2px rgba(0, 0, 0, .12);
+}
+
+button {
+  margin-right: 8px;
+}
+
+mat-paginator {
+  margin-top: 16px;
+}
+
+.table-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.table-controls div {
+  display: flex;
+  gap: 10px; /* Space between buttons */
+}
+
+.filter-group {
+  display: flex;
+  gap: 15px;
+}
+
+.filter-field {
+  width: 200px;
+}
+
+.table-container {
+  position: relative;
+}
+
+.mat-elevation-z8 {
+  width: 100%;
+  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, .2), 0 8px 10px 1px rgba(0, 0, 0, .14), 0 3px 14px 2px rgba(0, 0, 0, .12);
+}
+
+.spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.hidden {
+  visibility: hidden;
+}
+
+button {
+  margin-right: 8px;
+}
+
+mat-paginator {
+  margin-top: 16px;
+}

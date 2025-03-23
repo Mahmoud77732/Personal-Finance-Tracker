@@ -13,7 +13,8 @@ export class TransactionFormComponent implements OnInit{
     amount: 0, 
     date: new Date().toISOString().split('T')[0], 
     type: 'expense', 
-    category: { id: 0, name: '' } 
+    category: { id: 0, name: '' },
+    user: {id: 0, email: ''}
   };
 
   categories: any[] = [];
@@ -37,7 +38,7 @@ export class TransactionFormComponent implements OnInit{
       next: (response) => {
         this.successMessage = 'Transaction added successfully!';
         console.log('Transaction response:', response);
-        this.transaction = { amount: 0, date: new Date().toISOString().split('T')[0], type: 'expense', category: { id: 0, name: '' } };
+        this.transaction = { amount: 0, date: new Date().toISOString().split('T')[0], type: 'expense', category: { id: 0, name: '' }, user: {id: 0, email: ''} };
       },
       error: error => {
         console.error(error);

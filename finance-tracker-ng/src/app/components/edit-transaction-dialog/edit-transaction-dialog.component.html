@@ -1,0 +1,44 @@
+
+<h2 mat-dialog-title>Edit Transaction</h2>
+<mat-dialog-content>
+  <mat-form-field appearance="fill">
+    <mat-label>Amount</mat-label>
+    <input matInput type="number" [(ngModel)]="data.amount" required>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Date</mat-label>
+    <input matInput type="date" [(ngModel)]="data.date" required>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Type</mat-label>
+    <mat-select [(ngModel)]="data.type" required>
+      <mat-option value="income">Income</mat-option>
+      <mat-option value="expense">Expense</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Category</mat-label>
+    <mat-select [(ngModel)]="data.category" required [compareWith]="compareCategories">
+      <mat-option *ngFor="let category of categories" [value]="category">
+        {{ category.name }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>User</mat-label>
+    <mat-select [(ngModel)]="data.user" required [compareWith]="compareUsers">
+      <mat-option *ngFor="let user of users" [value]="user">
+        {{ user.email }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-button color="primary" (click)="onSave()" [disabled]="!data.amount || !data.date || !data.type || !data.category || !data.user">Save</button>
+</mat-dialog-actions>
